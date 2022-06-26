@@ -1,5 +1,7 @@
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 
+import Module.Tiang (LogTiang (UnknownTiang))
+
 runProgram :: IO ()
 runProgram = do
     putStrLn "\n\n\n=============== TiangKita Validator Console ==============="
