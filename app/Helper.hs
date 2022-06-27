@@ -3,6 +3,7 @@ module Helper where
 import Control.Monad (ap)
 import Data.Char (isDigit)
 import System.IO (hFlush, stdout)
+import Text.Read
 
 prompt :: String -> IO String
 prompt text = do

@@ -1,38 +1,47 @@
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 
-import Module.Tiang (LogTiang (UnknownTiang))
+import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, material, distance, valid, parseLogTiang, parseTiang)
+import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 
-runProgram :: IO ()
-runProgram = do
+runProgram :: [LogTiang] -> [LogMessage] -> IO ()
+runProgram tiangs messages = do
     putStrLn "\n\n\n=============== TiangKita Validator Console ==============="
-    putStrLn $ replicate 57 '='
+    putStrLn $ replicate 59 '='
     -- putStrLn $ showItem items
-    putStrLn "(a) Login  (b) Get Telkom Area  (c) Validate Eksisting Tiang  (d) Found New Tiang  (e) Log Out"
+    putStrLn "(a) Login  (b) Show Tiang Nearby  (c) Validate Tiang Eksisting  (d) Submit New Tiang  (e) Exit"
     choice <- prompt "Input choice: "
     case choice of
         "a" -> do
-            putStrLn $ "Enter Token"
+            putStrLn $ "Login"
             empty <- prompt "Press enter to go back"
-            runProgram
+            runProgram tiangs messages
         "b" -> do
             putStrLn $ "Enter your location (longitude, latitude)"
             empty <- prompt "Press enter to go back"
-            runProgram
+            runProgram tiangs messages
         "c" -> do
             putStrLn $ "Enter your Eksisting Tiang"
             empty <- prompt "Press enter to go back"
-            runProgram
+            runProgram tiangs messages
         "d" -> do
-            putStrLn $ "Enter your New Tiang"
-            empty <- prompt "Press enter to go back"
-            runProgram
+            putStrLn $ "You're about to submit New Tiang, please supply the data"
+            sto <- prompt "STO (JGR, MYR, KBR): "
+            let latitude = 7.41949837429793
+            let longitude = 112.66640638796179
+            material <- prompt "material (Steel, Concrete): "
+            newTiangs <- addNewTiang tiangs sto latitude longitude material
+            logMessage <- makeLogMessage (last newTiangs) "NEW"
+            parseLogMessage logMessage
+            emptyPrompt <- prompt "Successfully added New Tiang! Press enter to continue."
+            runProgram newTiangs messages
         "e" -> do
             putStrLn "Exiting program..."
             putStrLn "Goodbye!"
         _ -> do
             empty <- prompt "Wrong input! Press enter to try again."
-            runProgram
+            runProgram tiangs messages
 
 main :: IO ()
 main = do
-    runProgram
+    tiangs <- fmap parseTiang (readFile "log/tiangs.log")
+    runProgram tiangs []
