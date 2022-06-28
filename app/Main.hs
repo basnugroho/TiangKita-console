@@ -16,7 +16,7 @@ runProgram tiangs messages = do
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "b" -> do
-            putStrLn $ "Enter your location (longitude, latitude)"
+            putStrLn $ showTiangNearby tiangs
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "c" -> do
@@ -40,6 +40,25 @@ runProgram tiangs messages = do
         _ -> do
             empty <- prompt "Wrong input! Press enter to try again."
             runProgram tiangs messages
+
+showTiangNearby :: [LogTiang] -> String
+showTiangNearby [] = replicate 58 '='
+showTiangNearby (tiang : rest) =
+    "ID: " ++ show (tiangId tiang)
+        ++ "\nArea: "
+        ++ sto tiang
+        ++ "\nLatitude: "
+        ++ show (latitude tiang)
+        ++ "\nLongitude: "
+        ++ show (longitude tiang)
+        ++ "\nmaterial: "
+        ++ material tiang
+        ++ "\nisValid: "
+        ++ show (valid tiang)
+        ++ "\n"
+        ++ replicate 29 '-'
+        ++ "\n"
+        ++ showTiangNearby rest
 
 main :: IO ()
 main = do
