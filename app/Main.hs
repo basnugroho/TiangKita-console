@@ -3,16 +3,34 @@ import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, material, distance, valid, parseLogTiang, parseTiang)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 
+import Data.Aeson
+import Network.HTTP.Simple
+
+-- Get Area
+simpleGet :: IO ()
+simpleGet = do
+    response <- httpLbs "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon=112.78129266994343&lat=-7.28484800347449"
+    print (getResponseBody response)
+
 runProgram :: [LogTiang] -> [LogMessage] -> IO ()
 runProgram tiangs messages = do
     putStrLn "\n\n\n=============== TiangKita Validator Console ==============="
     putStrLn $ replicate 59 '='
     -- putStrLn $ showItem items
-    putStrLn "(a) Login  (b) Show Tiang Nearby  (c) Validate Tiang Eksisting  (d) Submit New Tiang  (e) Exit"
+    putStrLn "(a) Login  (a1) Telkom Area (b) Show Tiang Nearby  (c) Validate Tiang Eksisting  (d) Submit New Tiang  (e) Exit"
     choice <- prompt "Input choice: "
     case choice of
         "a" -> do
             putStrLn $ "Login"
+            empty <- prompt "Press enter to go back"
+            runProgram tiangs messages
+        "a1" -> do
+            lat <- prompt "insert latitude"
+            long <- prompt "insert longitude"
+            -- putStrLn $ "nice please wait"
+            let latitude = -7.41949837429793
+            let longitude = 112.66640638796179
+            simpleGet
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "b" -> do
