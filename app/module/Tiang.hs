@@ -78,30 +78,7 @@ makeTiang tiangId sto latitude longitude material =
         , valid = False
         }
 
--- updateTiang :: [LongTiang] -> Int -> Int -> IO [LogTiang]
--- updateTiang oldLogTiangList choice amount = do
+-- validateTiang :: [LogTiang] -> Int -> Double -> Double -> IO [LogTiang]
+-- validateTiang oldLogTiangList choice latitude longitude = do
 --     let tiangExist = find (\tiang -> (tiangId tiang) == choice) oldLogTiangList
-
---         extractTiang :: Maybe LogTiang -> LogTiang
---         extractTiang (Just a) = a
---         extractTiang Nothing = UnknownTiang
-
---         replaceTiang :: [LogTiang] -> LogTiang -> Int -> [LogTiang]
---         replaceTiang [] chosenTiang amount = []
---         replaceTiang (tiang : rest) chosenTiang amount
---             | tiang == chosenTiang = [tiang{latitude = latitude tiang + amount}] ++ replaceTiang rest chosenItem amount
---             | otherwise = [item] ++ replaceItem rest chosenItem amount
-
-    -- let restockedLogItemList =
-    --         if (extractItem itemExist) == UnknownItem
-    --             then oldLogItemList
-    --             else replaceItem oldLogItemList (extractItem itemExist) amount
-
-    -- if (extractItem itemExist) == UnknownItem
-    --     then putStrLn "Tiang not found. Please check your TiangID"
-    --     else
-    --         if amount == 0
-    --             then putStrLn "Amount inserted is zero. Are you sure you've input it correctly?"
-    --             else putStrLn "Successfully restocked item!"
-
-    -- return restockedLogItemList
+--     return restockedLogTiangList
