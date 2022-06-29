@@ -20,8 +20,36 @@ runProgram tiangs messages = do
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "c" -> do
-            putStrLn $ "Enter your Eksisting Tiang"
-            empty <- prompt "Press enter to go back"
+            putStrLn $ "Enter Tiang ID to be validated:"
+            -- Insert ItemID
+            -- putStr "Insert Tiang ID: "
+            -- hFlush stdout
+            -- choice <- do
+            --     result <- runMaybeT maybeReadInt
+            --     case result of
+            --         (Just a) -> return a
+            --         Nothing -> return 0
+            
+            -- newRestockedTiang <- restockTiang tiangs choice amount
+            -- parseLogItem newRestockedItems
+            -- let changedItem = find (\item -> itemId item == choice) newRestockedItems
+            --     extractItem :: Maybe LogItem -> LogItem
+            --     extractItem (Just a) = a
+            --     extractItem Nothing = UnknownItem
+
+            -- let extractedItem = extractItem changedItem
+
+            -- empty <- prompt "Press enter to go back"
+            -- runProgram tiangs messages
+            -- -- Insert Amount
+            -- putStr "Please specify your latitude: "
+            -- hFlush stdout
+            -- amount <- do
+            --     result <- runMaybeT maybeReadInt
+            --     case result of
+            --         (Just a) -> return a
+            --         Nothing -> return 0
+            putStrLn $ "ups this feature still under development :)"
             runProgram tiangs messages
         "d" -> do
             putStrLn $ "You're about to submit New Tiang, please supply the data"
