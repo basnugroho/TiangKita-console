@@ -7,10 +7,16 @@ import Data.Aeson
 import Network.HTTP.Simple
 
 -- Get Area
-simpleGet :: IO ()
-simpleGet = do
+simpleGet :: [Char] -> [Char] -> IO ()
+simpleGet lat long = do
     response <- httpLbs "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon=112.78129266994343&lat=-7.28484800347449"
     print (getResponseBody response)
+
+
+--"https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon=112.78129266994343&lat=-7.28484800347449"
+-- simpleGet1 :: [Char] -> [Char] -> IO ()
+--     response <- httpLbs "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon="++long++"&lat="++lat
+--     print (getResponseBody response)
 
 runProgram :: [LogTiang] -> [LogMessage] -> IO ()
 runProgram tiangs messages = do
@@ -25,12 +31,11 @@ runProgram tiangs messages = do
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "a1" -> do
-            lat <- prompt "insert latitude"
-            long <- prompt "insert longitude"
-            -- putStrLn $ "nice please wait"
-            let latitude = -7.41949837429793
-            let longitude = 112.66640638796179
-            simpleGet
+            putStrLn "insert latitude:"
+            lat <- getLine   
+            putStrLn "insert longitude:"
+            long <- getLine   
+            simpleGet lat long
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "b" -> do
