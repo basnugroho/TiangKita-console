@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
@@ -10,6 +11,19 @@ import System.IO (hFlush, stdout)
 
 import Data.Aeson
 import Network.Wreq
+import Data.Text (Text)
+import GHC.Generics
+
+data TelkomAreaResponse = TelkomAreaResponse {
+    regional :: Text,
+    witel :: Text,
+    name :: Text,
+    description :: Text,
+    status :: Text
+    }
+    deriving (Generic)
+    
+instance FromJSON TelkomAreaResponse
 
 getTelkomArea :: String -> String -> IO ()
 getTelkomArea lat lon = do
