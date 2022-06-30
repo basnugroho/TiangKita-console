@@ -82,3 +82,29 @@ makeTiang tiangId sto latitude longitude material =
 -- validateTiang oldLogTiangList choice latitude longitude = do
 --     let tiangExist = find (\tiang -> (tiangId tiang) == choice) oldLogTiangList
 --     return restockedLogTiangList
+
+selectTiang :: [LogTiang] -> Int -> Maybe LogTiang
+selectTiang [] _ = Nothing
+selectTiang tiangList tiangid = find (\tiang -> (tiangId tiang) == tiangid) tiangList
+
+extractTiang :: Maybe LogTiang -> LogTiang
+extractTiang (Just a) = a
+extractTiang Nothing = UnknownTiang
+
+takeTiang :: [LogTiang] -> Int -> IO [LogTiang]
+takeTiang tiangList choice = do
+    let tiangExist = find (\tiang -> (tiangId tiang) == choice) tiangList
+        replaceTiang :: [LogTiang] -> LogTiang -> [LogTiang]
+        replaceTiang [] chosenTiang = []
+        replaceTiang (tiang : rest) chosenTiang
+            | tiang == chosenTiang = [tiang{valid = True}] ++ replaceTiang rest chosenTiang
+            | otherwise = [tiang] ++ replaceTiang rest chosenTiang
+    
+    let updatedLogTiangList = if (extractTiang tiangExist) == UnknownTiang 
+                            then tiangList 
+                            else replaceTiang tiangList (extractTiang tiangExist)
+
+    if (extractTiang tiangExist) == UnknownTiang
+        then putStrLn "Tiang not found. Please check your TiangID"
+        else putStrLn "TiangID validated successfully!"
+    return updatedLogTiangList

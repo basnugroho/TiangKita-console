@@ -1,18 +1,32 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, ViewPatterns, PatternSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, EmptyDataDecls, BangPatterns, TupleSections #-}
+-- |A basic GPS library with calculations for distance and speed along
+-- with helper functions for filtering/smoothing trails.  All distances
+-- are in meters and time is in seconds.  Speed is thus meters/second
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
-import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, material, distance, valid, parseLogTiang, parseTiang)
+import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
+                        material, distance, valid, parseLogTiang, parseTiang, selectTiang, extractTiang)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 import System.IO (hFlush, stdout)
+import HaskellSay (haskellSay)
 
 import Data.Aeson
 import Network.Wreq
 import Data.Text (Text)
 import GHC.Generics
+
+import Geo.Computations
+import Data.Time
+import Data.List
+import Data.Ord
+import Data.Fixed
+import Control.Applicative
+import Control.Monad
 
 data TelkomAreaResponse = TelkomAreaResponse {
     regional :: Text,
@@ -33,6 +47,7 @@ getTelkomArea lat lon = do
 
 runProgram :: [LogTiang] -> [LogMessage] -> IO ()
 runProgram tiangs messages = do
+    haskellSay "Hello, Welcome to TiangKita Validator Console!"
     putStrLn "\n\n\n=============== TiangKita Validator Console ==============="
     putStrLn $ replicate 59 '='
     -- putStrLn $ showItem items
@@ -59,19 +74,27 @@ runProgram tiangs messages = do
         "d" -> do
             putStrLn $ "Enter Tiang ID to be validated:"
             -- Insert tiangID
-            putStr "Insert Tiang ID: "
+            putStrLn "Insert Tiang ID: "
             -- hFlush stdout
             choice <- do
                 result <- runMaybeT maybeReadInt
                 case result of
                     (Just a) -> return a
                     Nothing -> return 0
+            let maybeTiang = selectTiang tiangs choice
+            if (extractTiang maybeTiang) == UnknownTiang
+                then putStrLn "Tiang not found. Please check your TiangID"
+                else putStrLn "Tiang found!"
             -- Insert Amount
             putStrLn "insert latitude (e.g: -6.175232396788355):"
             lat <- getLine   
             putStrLn "insert longitude (e.g: 106.82712061061278):"
-            lon <- getLine   
-
+            lon <- getLine
+            let inputPoin = Point (-7.419432664002372) (112.66614078575975) Nothing Nothing
+            let tiangExisting = extractTiang maybeTiang
+            let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
+            let coordistance =  Geo.Computations.distance inputPoin tiangExistingPoin
+            putStrLn $ show(coordistance)
             -- parseLogMessage logMessage
             emptyPrompt <- prompt "Press enter to continue."
             runProgram tiangs messages
@@ -117,7 +140,13 @@ showTiangNearby (tiang : rest) =
         ++ "\n"
         ++ showTiangNearby rest
 
+-- Lat Long
+
 main :: IO ()
 main = do
     tiangs <- fmap parseTiang (readFile "log/tiangs.log")
     runProgram tiangs []
+
+
+
+
