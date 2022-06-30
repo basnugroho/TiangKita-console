@@ -58,6 +58,22 @@ parseLogTiang logTiangList = do
     let parseLogTiang = init $ convertToLog logTiangList -- using init to remove the last \n at the end of the .log
     writeFile "log/tiang.log" parseLogTiang
 
+-- printTiang :: LogTiang -> String
+-- printTiang LogTiang =
+--     let convertToLog :: LogTiang -> String
+--         convertToLog [] = ""
+--         convertToLog (logTiang) = show (tiangId logTiang)
+            -- show (tiangId logTiang)
+            --     ++ "\t"
+            --     ++ sto logTiang
+            --     ++ "\t"
+            --     ++ show (latitude logTiang)
+            --     ++ "\t"
+            --     ++ show (longitude logTiang)
+            --     ++ "\t"
+            --     ++ material logTiang
+            --     ++ "\n"
+
 parseTiang :: String -> [LogTiang]
 parseTiang rawContent = map parseSingleTiang (lines rawContent)
 

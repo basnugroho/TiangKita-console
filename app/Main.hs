@@ -84,17 +84,20 @@ runProgram tiangs messages = do
             let maybeTiang = selectTiang tiangs choice
             if (extractTiang maybeTiang) == UnknownTiang
                 then putStrLn "Tiang not found. Please check your TiangID"
-                else putStrLn "Tiang found!"
+                else putStrLn $ "choosen tiang: " ++ show(extractTiang maybeTiang)
             -- Insert Amount
             putStrLn "insert latitude (e.g: -6.175232396788355):"
             lat <- getLine   
             putStrLn "insert longitude (e.g: 106.82712061061278):"
             lon <- getLine
-            let inputPoin = Point (-7.419432664002372) (112.66614078575975) Nothing Nothing
+            let inputPoin = Point (read lat) (read lon) Nothing Nothing
             let tiangExisting = extractTiang maybeTiang
             let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
             let coordistance =  Geo.Computations.distance inputPoin tiangExistingPoin
-            putStrLn $ show(coordistance)
+            putStr "the distance is: "
+            putStr $ show(coordistance) ++ " meter"
+            result <- do
+                if coordistance <= 10.0 then putStrLn " | is valid!" else putStrLn " | ups is too far, not valid!"
             -- parseLogMessage logMessage
             emptyPrompt <- prompt "Press enter to continue."
             runProgram tiangs messages
