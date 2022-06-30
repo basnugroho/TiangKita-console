@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, ViewPatterns, PatternSynonyms #-}
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, EmptyDataDecls, BangPatterns, TupleSections #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+
 -- |A basic GPS library with calculations for distance and speed along
 -- with helper functions for filtering/smoothing trails.  All distances
 -- are in meters and time is in seconds.  Speed is thus meters/second
@@ -12,6 +14,7 @@ import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
                         material, distance, valid, parseLogTiang, parseTiang, selectTiang, extractTiang)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
+import Module.User
 import System.IO (hFlush, stdout)
 import HaskellSay (haskellSay)
 
@@ -27,6 +30,8 @@ import Data.Ord
 import Data.Fixed
 import Control.Applicative
 import Control.Monad
+
+import Crypto.BCrypt
 
 data TelkomAreaResponse = TelkomAreaResponse {
     regional :: Text,
@@ -55,7 +60,15 @@ runProgram tiangs messages = do
     choice <- prompt "Input choice: "
     case choice of
         "a" -> do
-            putStrLn $ "Login"
+            putStrLn "\n\n\n=============== Login ==============="
+            putStrLn $ "username:"
+            username <- getLine
+            putStrLn $ "password:"
+            password <- getLine
+            users <- fmap parseUser (readFile "log/users.log")
+            let maybeUser = selectUser users username password
+            let userLogin = extractUser maybeUser
+            putStrLn $ "Login Success! Welcome: " ++ show(userLogin)
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "b" -> do
