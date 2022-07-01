@@ -19,7 +19,10 @@ data User
 
 selectUser :: [User] -> String -> String -> Maybe User
 selectUser [] _ _ = Nothing
-selectUser users uname  pass = find (\user -> (username user) == uname && (password user) == pass) users
+selectUser users uname pass 
+    | pass == "" = find (\user -> (username user) == uname && (password user) == pass) users
+    | otherwise = find (\user -> (username user) == uname) users
+
 
 parseUser :: String -> [User]
 parseUser rawContent = map parseSingleUser (lines rawContent)
@@ -60,7 +63,40 @@ changeState users uname state = do
                             then users 
                             else updateState users (extractUser userExist)
 
-    if (extractUser userExist) == UnknownUser
-        then putStrLn "Tiang not found. Please check your TiangID"
-        else putStrLn "TiangID validated successfully!"
+    -- if (extractUser userExist) == UnknownUser
+    --     then putStrLn "Tiang not found. Please check your TiangID"
+    --     else putStrLn "TiangID validated successfully!"
     return updatdUsers
+
+changeStateToOffline :: [User] -> IO [User]
+changeStateToOffline users = do
+    let userExist = find (\user -> (state user) == "online") users
+        updateState :: [User] -> User -> [User]
+        updateState [] chosenUser = []
+        updateState (user : rest) chosenUser
+            | user == chosenUser = [user{state = "offline"}] ++ updateState rest chosenUser
+            | otherwise = [user] ++ updateState rest chosenUser
+    
+    let updatdUsers = if (extractUser userExist) == UnknownUser 
+                            then users 
+                            else updateState users (extractUser userExist)
+    return updatdUsers
+
+parseLogUser :: [User] -> IO ()
+parseLogUser users = do
+    let convertToLog :: [User] -> String
+        convertToLog [] = ""
+        convertToLog (user : rest) =
+            show (userId user)
+                ++ " "
+                ++ username user
+                ++ " "
+                ++ name user
+                ++ " "
+                ++ (password user)
+                ++ " "
+                ++ (state user)
+                ++ "\n"
+                ++ convertToLog rest
+    let parseLogUser = init $ convertToLog users -- using init to remove the last \n at the end of the .log
+    writeFile "log/users_login.log" parseLogUser

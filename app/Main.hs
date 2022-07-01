@@ -66,12 +66,15 @@ runProgram tiangs messages = do
             username <- getLine
             putStrLn $ "password:"
             password <- getLine
+            -- handle <- openFile "log/users.log" ReadMode
+            -- users <- fmap parseUser $ (hGetContents handle)     
+            -- hClose handle        
             users <- fmap parseUser (readFile "log/users.log")
             let maybeUser = selectUser users username password
             case maybeUser of
                 (Just a) -> do
-                    let safeUser = extractUser maybeUser
-                    changeState users "bas" "online"
+                    usersOnline <- changeState users (Module.User.username a) "online"
+                    parseLogUser usersOnline
                     putStrLn $ "Login Success! Welcome " ++ (Module.User.name a) 
                 Nothing -> putStrLn "Ups! Wrong credential"
             empty <- prompt "Press enter to go back"
@@ -123,8 +126,8 @@ runProgram tiangs messages = do
                                 putStrLn "wrong latitude format input!"
                                 makeLogMessage tiangExisting "INVALID"
                                 return 0.0
-                    case safeLat of
-                        0.0 -> do runProgram tiangs messages
+                    -- case safeLat of
+                    --     0.0 -> do runProgram tiangs messages
                     
                     putStrLn "insert longitude (e.g: 106.82712061061278):"
                     lon <- getLine -- need failsafe
@@ -136,8 +139,8 @@ runProgram tiangs messages = do
                                 makeLogMessage tiangExisting "INVALID"
                                 putStrLn "wrong longitude format input!"
                                 return 0.0
-                    case safeLon of
-                        0.0 -> do runProgram tiangs messages
+                    -- case safeLon of
+                    --     0.0 -> do runProgram tiangs messages
                     
                     let inputPoin = Point (safeLat) (safeLon) Nothing Nothing
                     let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
@@ -165,7 +168,9 @@ runProgram tiangs messages = do
             runProgram newTiangs messages
         "f" -> do
             putStrLn "Exiting program..."
-            -- changeState users "bas" "offline"
+            users <- fmap parseUser (readFile "log/users.log")
+            exitUser <- changeStateToOffline users
+            parseLogUser exitUser
             putStrLn "Goodbye!"
         _ -> do
             empty <- prompt "Wrong input! Press enter to try again."
