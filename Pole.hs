@@ -24,7 +24,7 @@ runProgram tiangs tiangId = do
     -- putStrLn "tiangId: "
     -- tiangId <- getLine
     putStrLn "\n\n\n=============== Here what you selected ==============="
-    putStrLn $ "youve selected tiangID 3"
+    putStrLn $ "you've selected tiangID 3"
     updatedTiangs <- takeTiang tiangs 3
     parseLogTiang updatedTiangs
 
@@ -55,26 +55,7 @@ takeTiang tiangList choice = do
 selectTiang :: [LogTiang] -> Int -> Maybe LogTiang
 selectTiang [] _ = Nothing
 selectTiang tiangList tiangid = find (\tiang -> (tiangId tiang) == tiangid) tiangList
-    --     extractTiang :: Maybe LogTiang -> LogTiang
-    --     extractTiang (Just a) = a
-    --     extractTiang Nothing = UnknownTiang
-    -- extractTiang tiangExist
-    -- if (extractTiang tiangExist) == UnknownTiang then False else True
-        -- then show "Tiang not found. Please check your TiangID"
-        -- else show "\nID: " ++ show (tiangId tiang)
-        --     ++ "\nArea: "
-        --     ++ sto tiang
-        --     ++ "\nLatitude: "
-        --     ++ show (latitude tiang)
-        --     ++ "\nLongitude: "
-        --     ++ show (longitude tiang)
-        --     ++ "\nmaterial: "
-        --     ++ material tiang
-        --     ++ "\nisValid: "
-        --     ++ show (valid tiang)
-        --     ++ "\n"
-        --     ++ replicate 29 '-'
-        --     ++ "\n"
+
 
 -- putStrLn show(sto logTiang1++" "++show(latitude logTiang1)
 parseTiang :: String -> [LogTiang]
@@ -117,42 +98,3 @@ parseLogTiang logTiangList = do
                 ++ convertToLog rest
     let parseLogTiang = init $ convertToLog logTiangList -- using init to remove the last \n at the end of the .log
     writeFile "log/tiang.log" parseLogTiang
-
-type Point = (Double, Double)
-type Distance = Double
-
-coordistance :: Point -> Point -> Distance
-coordistance x y =
-  let (lat1,lon1) = getRadianPair x
-      (lat2,lon2) = getRadianPair y
-      deltaLat    = lat2 - lat1
-      deltaLon    = lon2 - lon1
-      a = (sin (deltaLat / 2))^(2::Int) + cos lat1 * cos lat2 * (sin (deltaLon / 2))^(2::Int)
-      c = 2 * atan2 (a**0.5) ((1-a)**0.5)
-  in radiusOfEarth * c
-
--- get latitude and longituide in Radians as Double's
-getRadianPair :: Point -> (Double,Double)
-getRadianPair p = (toRadians (pntLat p), toRadians (pntLon p))
-
-toRadians :: Floating f => f -> f
-toRadians = (*) (pi / 180)
-
--- |radius of the earth in meters
-radiusOfEarth :: Double
-radiusOfEarth = 6378700
-
-addVector :: Vector -> Point -> Point
-addVector (d,h) p =
-                  p { pntLon = toDegrees lon2
-                    , pntLat = toDegrees lat2
-                        }
-
-type Heading = Double
-
--- |Speed is hard coded as meters per second
-type Speed = Double
-type Vector = (Distance, Heading)
-
-toDegrees :: Double -> Double
-toDegrees = (*) (180 / pi)

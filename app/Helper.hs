@@ -40,3 +40,7 @@ maybeReadInt = do
     if all isDigit s
         then return $ read s
         else MaybeT $ return Nothing
+
+
+maybeReadDouble :: String -> Maybe Double
+maybeReadDouble input = readMaybe input :: Maybe Double

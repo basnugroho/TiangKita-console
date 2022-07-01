@@ -17,7 +17,7 @@ data LogMessage
     | Unknown
     deriving (Show)
 
-data Status = IN | OUT | NEW | ERR deriving (Show, Read)
+data Status = VALID | INVALID | REMOVE | NEW | ERR deriving (Show, Read)
 
 secondSinceEpoch :: UTCTime -> Int
 secondSinceEpoch =

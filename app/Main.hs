@@ -10,7 +10,7 @@
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Data.List
-import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
+import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT, maybeReadDouble)
 import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
                         material, distance, valid, parseLogTiang, parseTiang, selectTiang, extractTiang)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
@@ -30,6 +30,7 @@ import Data.Ord
 import Data.Fixed
 import Control.Applicative
 import Control.Monad
+import Text.Read
 
 import Crypto.BCrypt
 
@@ -47,7 +48,7 @@ instance FromJSON TelkomAreaResponse
 getTelkomArea :: String -> String -> IO ()
 getTelkomArea lat lon = do
     let url = "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon=" ++ lon ++ "&lat=" ++ lat
-    rsp <- get url
+    rsp <- Network.Wreq.get url
     print rsp
 
 runProgram :: [LogTiang] -> [LogMessage] -> IO ()
@@ -67,8 +68,12 @@ runProgram tiangs messages = do
             password <- getLine
             users <- fmap parseUser (readFile "log/users.log")
             let maybeUser = selectUser users username password
-            let userLogin = extractUser maybeUser
-            putStrLn $ "Login Success! Welcome: " ++ show(userLogin)
+            case maybeUser of
+                (Just a) -> do
+                    let safeUser = extractUser maybeUser
+                    changeState users "bas" "online"
+                    putStrLn $ "Login Success! Welcome " ++ (Module.User.name a) 
+                Nothing -> putStrLn "Ups! Wrong credential"
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "b" -> do
@@ -85,34 +90,62 @@ runProgram tiangs messages = do
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "d" -> do
-            putStrLn $ "Enter Tiang ID to be validated:"
-            -- Insert tiangID
-            putStrLn "Insert Tiang ID: "
+            putStrLn $ "Enter Tiang ID: "
             -- hFlush stdout
             choice <- do
                 result <- runMaybeT maybeReadInt
                 case result of
                     (Just a) -> return a
                     Nothing -> return 0
+
             let maybeTiang = selectTiang tiangs choice
-            if (extractTiang maybeTiang) == UnknownTiang
-                then putStrLn "Tiang not found. Please check your TiangID"
-                else putStrLn $ "choosen tiang: " ++ show(extractTiang maybeTiang)
-            -- Insert Amount
-            putStrLn "insert latitude (e.g: -6.175232396788355):"
-            lat <- getLine   
-            putStrLn "insert longitude (e.g: 106.82712061061278):"
-            lon <- getLine
-            let inputPoin = Point (read lat) (read lon) Nothing Nothing
-            let tiangExisting = extractTiang maybeTiang
-            let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
-            let coordistance =  Geo.Computations.distance inputPoin tiangExistingPoin
-            putStr "the distance is: "
-            putStr $ show(coordistance) ++ " meter"
-            result <- do
-                if coordistance <= 10.0 then putStrLn " | is valid!" else putStrLn " | ups is too far, not valid!"
-            -- parseLogMessage logMessage
-            emptyPrompt <- prompt "Press enter to continue."
+
+            case maybeTiang of
+                Nothing -> do
+                    putStrLn "Tiang not found. Please check your TiangID again!"
+                    makeLogMessage UnknownTiang "ERR"
+                (Just a) -> do
+                    let tiangExisting = extractTiang maybeTiang
+                    putStrLn $ "choosen tiang -> ID: " ++ show(tiangId tiangExisting)
+                                ++ ", STO: " ++ show(sto tiangExisting)
+                                ++ ", lat: " ++ show(latitude tiangExisting)
+                                ++ ", lon: " ++ show(longitude tiangExisting)
+                                ++ ", material: " ++ show(material tiangExisting)
+
+                    -- check lat lon
+                    putStrLn "insert latitude (e.g: -6.175232396788355):"
+                    lat <- getLine -- need failsafe
+                    safeLat <- do
+                        let safeLat = maybeReadDouble lat
+                        case safeLat of
+                            (Just a) -> return a
+                            (Nothing) -> do
+                                putStrLn "wrong latitude format input!"
+                                makeLogMessage tiangExisting "INVALID"
+                                return 0.0
+                    case safeLat of
+                        0.0 -> do runProgram tiangs messages
+                    
+                    putStrLn "insert longitude (e.g: 106.82712061061278):"
+                    lon <- getLine -- need failsafe
+                    safeLon <- do
+                        let safeLon = maybeReadDouble lon
+                        case safeLon of
+                            (Just a) -> return a
+                            (Nothing) -> do
+                                makeLogMessage tiangExisting "INVALID"
+                                putStrLn "wrong longitude format input!"
+                                return 0.0
+                    case safeLon of
+                        0.0 -> do runProgram tiangs messages
+                    
+                    let inputPoin = Point (safeLat) (safeLon) Nothing Nothing
+                    let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
+                    let coordistance =  Geo.Computations.distance inputPoin tiangExistingPoin
+
+                    putStrLn $ "calculated distance: " ++ show(coordistance) ++ " meter"
+                    makeLogMessage tiangExisting "VALID"
+            emptyPrompt <- prompt "\nPress enter to continue."
             runProgram tiangs messages
         "e" -> do
             putStrLn $ "You're about to submit New Tiang, please supply the data"
@@ -132,6 +165,7 @@ runProgram tiangs messages = do
             runProgram newTiangs messages
         "f" -> do
             putStrLn "Exiting program..."
+            -- changeState users "bas" "offline"
             putStrLn "Goodbye!"
         _ -> do
             empty <- prompt "Wrong input! Press enter to try again."

@@ -43,3 +43,24 @@ makeUser userId username name password state =
 extractUser :: Maybe User -> User
 extractUser (Just a) = a
 extractUser Nothing = UnknownUser
+
+isLoggedIn :: [User] -> Maybe User
+isLoggedIn users = find (\user -> (state user) == "online") users
+
+changeState :: [User] -> String -> String -> IO [User]
+changeState users uname state = do
+    let userExist = find (\user -> (username user) == uname) users
+        updateState :: [User] -> User -> [User]
+        updateState [] chosenUser = []
+        updateState (user : rest) chosenUser
+            | user == chosenUser = [user{state = state}] ++ updateState rest chosenUser
+            | otherwise = [user] ++ updateState rest chosenUser
+    
+    let updatdUsers = if (extractUser userExist) == UnknownUser 
+                            then users 
+                            else updateState users (extractUser userExist)
+
+    if (extractUser userExist) == UnknownUser
+        then putStrLn "Tiang not found. Please check your TiangID"
+        else putStrLn "TiangID validated successfully!"
+    return updatdUsers
