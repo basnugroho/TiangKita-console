@@ -111,13 +111,21 @@ takeTiang tiangList choice = do
 findTiangNearby :: [LogTiang] -> Point -> Double -> [LogTiang]
 findTiangNearby [] _ _ = []
 findTiangNearby (tiang : rest) inputPoin dist = 
-    if (distance (inputPoin) (Point (latitude tiang) (longitude tiang) Nothing Nothing) < dist)
+    let tiangPoint = (Point (latitude tiang) (longitude tiang) Nothing Nothing) in
+    if (distance (inputPoin) (tiangPoint) < dist)
         then tiang : findTiangNearby (rest) inputPoin dist 
         else findTiangNearby rest inputPoin dist
 
+findTiangEven :: [LogTiang] -> [LogTiang]
+findTiangEven [] = []
+findTiangEven (tiang : rest)  = 
+    if (mod (tiangId tiang) 2 == 0)
+        then tiang : findTiangEven (rest)
+        else findTiangEven rest
+
 showTiangNearby :: [LogTiang] -> String
 showTiangNearby [] = replicate 58 '='
-showTiangNearby (tiang : rest) =
+showTiangNearby (tiang : rest) = 
     "ID: " ++ show (tiangId tiang)
         ++ "\nArea: "
         ++ sto tiang

@@ -93,7 +93,7 @@ runProgram tiangs messages = do
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "c" -> do
-            putStrLn "insert latitude (e.g: -6.175232396788355):"
+            putStrLn "enter latitude (e.g: -6.175232396788355):"
             lat <- getLine -- need failsafe
             safeLat <- do
                 let safeLat = maybeReadDouble lat
@@ -105,8 +105,8 @@ runProgram tiangs messages = do
                         runProgram tiangs messages
                         return 0.0
             
-            putStrLn "insert longitude (e.g: 106.82712061061278):"
-            lon <- getLine -- need failsafe
+            putStrLn "enter longitude (e.g: 106.82712061061278):"
+            lon <- getLine
             safeLon <- do
                 let safeLon = maybeReadDouble lon
                 case safeLon of
@@ -116,9 +116,24 @@ runProgram tiangs messages = do
                         empty <- prompt "Press enter to try again"
                         runProgram tiangs messages
                         return 0.0
+
+            putStrLn "enter radius (in meter): "
+            rad <- getLine
+            safeRadius <- do
+                let safeRadius = maybeReadDouble rad
+                case safeRadius of
+                    (Just a) -> return a
+                    (Nothing) -> do
+                        putStrLn "wrong radius format input!"
+                        empty <- prompt "Press enter to try again"
+                        runProgram tiangs messages
+                        return 0.0
+
             let inputPoin = Point (safeLat) (safeLon) Nothing Nothing
-            let tiangsNearby = findTiangNearby tiangs inputPoin 20.0
-            putStrLn $ show tiangsNearby
+            let tiangsNearby = findTiangNearby tiangs inputPoin safeRadius
+            putStrLn $ "Tiang(s) in radius: " ++ show safeRadius ++ " meter"
+            putStrLn $ showTiangNearby tiangsNearby
+            putStrLn $ "there are " ++ show (length tiangsNearby) ++ " Tiang(s) in radius " ++ show (safeRadius) ++ " meter"
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "d" -> do
