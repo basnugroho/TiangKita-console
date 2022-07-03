@@ -5,6 +5,7 @@ import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 import System.IO (hFlush, stdout)
+import Geo.Computations
 
 data LogTiang
     = LogTiang
@@ -13,7 +14,6 @@ data LogTiang
         , latitude :: Double
         , longitude :: Double
         , material :: [Char]
-        , distance :: Double
         , valid :: Bool
         }
     | UnknownTiang
@@ -33,7 +33,6 @@ addNewTiang oldLogTiangList sto latitude longitude material = do
                 , latitude = latitude
                 , longitude = longitude
                 , material = material
-                , distance = 0
                 , valid = False
                 }
     let newLogTiangList = oldLogTiangList ++ [newLogTiang]
@@ -58,22 +57,6 @@ parseLogTiang logTiangList = do
     let parseLogTiang = init $ convertToLog logTiangList -- using init to remove the last \n at the end of the .log
     writeFile "log/tiang.log" parseLogTiang
 
--- printTiang :: LogTiang -> String
--- printTiang LogTiang =
---     let convertToLog :: LogTiang -> String
---         convertToLog [] = ""
---         convertToLog (logTiang) = show (tiangId logTiang)
-            -- show (tiangId logTiang)
-            --     ++ "\t"
-            --     ++ sto logTiang
-            --     ++ "\t"
-            --     ++ show (latitude logTiang)
-            --     ++ "\t"
-            --     ++ show (longitude logTiang)
-            --     ++ "\t"
-            --     ++ material logTiang
-            --     ++ "\n"
-
 parseTiang :: String -> [LogTiang]
 parseTiang rawContent = map parseSingleTiang (lines rawContent)
 
@@ -90,7 +73,6 @@ makeTiang tiangId sto latitude longitude material =
         , latitude = read latitude
         , longitude = read longitude
         , material = unwords material
-        , distance = 0.0
         , valid = False
         }
 
@@ -124,3 +106,30 @@ takeTiang tiangList choice = do
         then putStrLn "Tiang not found. Please check your TiangID"
         else putStrLn "TiangID validated successfully!"
     return updatedLogTiangList
+
+
+findTiangNearby :: [LogTiang] -> Point -> Double -> [LogTiang]
+findTiangNearby [] _ _ = []
+findTiangNearby (tiang : rest) inputPoin dist = 
+    if (distance (inputPoin) (Point (latitude tiang) (longitude tiang) Nothing Nothing) < dist)
+        then tiang : findTiangNearby (rest) inputPoin dist 
+        else findTiangNearby rest inputPoin dist
+
+showTiangNearby :: [LogTiang] -> String
+showTiangNearby [] = replicate 58 '='
+showTiangNearby (tiang : rest) =
+    "ID: " ++ show (tiangId tiang)
+        ++ "\nArea: "
+        ++ sto tiang
+        ++ "\nLatitude: "
+        ++ show (latitude tiang)
+        ++ "\nLongitude: "
+        ++ show (longitude tiang)
+        ++ "\nmaterial: "
+        ++ material tiang
+        ++ "\nisValid: "
+        ++ show (valid tiang)
+        ++ "\n"
+        ++ replicate 29 '-'
+        ++ "\n"
+        ++ showTiangNearby rest

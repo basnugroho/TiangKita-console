@@ -4,24 +4,18 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, EmptyDataDecls, BangPatterns, TupleSections #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
--- |A basic GPS library with calculations for distance and speed along
--- with helper functions for filtering/smoothing trails.  All distances
--- are in meters and time is in seconds.  Speed is thus meters/second
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT, maybeReadDouble)
-import Module.Tiang (LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
-                        material, distance, valid, parseLogTiang, parseTiang, selectTiang, extractTiang)
+import Module.Tiang (LogTiang, LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
+                        material, valid, parseLogTiang, parseTiang, selectTiang, extractTiang, findTiangNearby, showTiangNearby)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 import Module.User
+import Module.Request (TelkomArea, Place, regional, name, witel, description, formatted_address)
+-- import Module.HTTP
 import System.IO (hFlush, stdout)
 import HaskellSay (haskellSay)
-
-import Data.Aeson
-import Network.Wreq
-import Data.Text (Text)
-import GHC.Generics
 
 import Geo.Computations
 import Data.Time
@@ -31,25 +25,20 @@ import Data.Fixed
 import Control.Applicative
 import Control.Monad
 import Text.Read
+import Network.HTTP.Conduit (simpleHttp)
+import qualified Data.ByteString.Lazy as B
 
+import Data.Aeson
+import Control.Applicative
+import Control.Monad
+import qualified Data.ByteString.Lazy as B
+import Network.HTTP.Conduit (simpleHttp)
+import GHC.Generics
+import qualified Data.Text.IO as T
 import Crypto.BCrypt
 
-data TelkomAreaResponse = TelkomAreaResponse {
-    regional :: Text,
-    witel :: Text,
-    name :: Text,
-    description :: Text,
-    status :: Text
-    }
-    deriving (Generic)
-    
-instance FromJSON TelkomAreaResponse
-
-getTelkomArea :: String -> String -> IO ()
-getTelkomArea lat lon = do
-    let url = "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lon=" ++ lon ++ "&lat=" ++ lat
-    rsp <- Network.Wreq.get url
-    print rsp
+urlByte :: String -> IO B.ByteString
+urlByte url = simpleHttp url
 
 runProgram :: [LogTiang] -> [LogMessage] -> IO ()
 runProgram tiangs messages = do
@@ -84,12 +73,52 @@ runProgram tiangs messages = do
             putStrLn "insert latitude (e.g: -6.175232396788355):"
             lat <- getLine   
             putStrLn "insert longitude (e.g: 106.82712061061278):"
-            lon <- getLine   
-            getTelkomArea lat lon
+            lon <- getLine
+            -- telkom area
+            -- let byteUrl = urlByte $ "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lat=" ++ lat ++ "&lon=" ++ lon
+            -- d <- (eitherDecode <$> byteUrl) :: IO (Either String [TelkomArea])
+            -- case d of
+            --     Left err -> putStrLn err
+            --     Right ps -> print (ps)
+                    -- print $ "You're inside: "
+                    -- ++ ", Regional: " ++ show(regional)
+                    -- ++ ", Witel: " ++ show(witel)
+                    -- ++ ", STO: " ++ show(Module.Request.name)
+                    -- ++ "(" ++ show(description) ++ ")"
+            let byteUrl = urlByte $ "https://maps.googleapis.com/maps/api/geocode/json?latlng=" ++ lat ++ ","++ lon ++ "&key=AIzaSyDvqKPOVZlBgYF2t_5odBPOuzzxvBtJL8I"
+            d <- (eitherDecode <$> byteUrl) :: IO (Either String Place)
+            case d of
+                Left err -> putStrLn err
+                Right ps -> print $ "nearby: " ++ show (ps)
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "c" -> do
-            putStrLn $ showTiangNearby tiangs
+            putStrLn "insert latitude (e.g: -6.175232396788355):"
+            lat <- getLine -- need failsafe
+            safeLat <- do
+                let safeLat = maybeReadDouble lat
+                case safeLat of
+                    (Just a) -> return a
+                    (Nothing) -> do
+                        putStrLn "wrong latitude format input!"
+                        empty <- prompt "Press enter to try again"
+                        runProgram tiangs messages
+                        return 0.0
+            
+            putStrLn "insert longitude (e.g: 106.82712061061278):"
+            lon <- getLine -- need failsafe
+            safeLon <- do
+                let safeLon = maybeReadDouble lon
+                case safeLon of
+                    (Just a) -> return a
+                    (Nothing) -> do
+                        putStrLn "wrong longitude format input!"
+                        empty <- prompt "Press enter to try again"
+                        runProgram tiangs messages
+                        return 0.0
+            let inputPoin = Point (safeLat) (safeLon) Nothing Nothing
+            let tiangsNearby = findTiangNearby tiangs inputPoin 20.0
+            putStrLn $ show tiangsNearby
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "d" -> do
@@ -125,9 +154,9 @@ runProgram tiangs messages = do
                             (Nothing) -> do
                                 putStrLn "wrong latitude format input!"
                                 makeLogMessage tiangExisting "INVALID"
+                                empty <- prompt "Press enter to try again"
+                                runProgram tiangs messages
                                 return 0.0
-                    -- case safeLat of
-                    --     0.0 -> do runProgram tiangs messages
                     
                     putStrLn "insert longitude (e.g: 106.82712061061278):"
                     lon <- getLine -- need failsafe
@@ -136,17 +165,20 @@ runProgram tiangs messages = do
                         case safeLon of
                             (Just a) -> return a
                             (Nothing) -> do
-                                makeLogMessage tiangExisting "INVALID"
                                 putStrLn "wrong longitude format input!"
+                                makeLogMessage tiangExisting "INVALID"
+                                empty <- prompt "Press enter to try again"
+                                runProgram tiangs messages
                                 return 0.0
-                    -- case safeLon of
-                    --     0.0 -> do runProgram tiangs messages
                     
                     let inputPoin = Point (safeLat) (safeLon) Nothing Nothing
                     let tiangExistingPoin = Point (latitude tiangExisting) (longitude tiangExisting) Nothing Nothing
-                    let coordistance =  Geo.Computations.distance inputPoin tiangExistingPoin
+                    let coordistance =  distance inputPoin tiangExistingPoin
 
-                    putStrLn $ "calculated distance: " ++ show(coordistance) ++ " meter"
+                    putStrLn $ "calculated distance: " ++ show(coordistance) ++ " (in meter)"
+                    if coordistance <= 20.0 
+                        then putStrLn $ "Tiang ID: " ++ show (choice) ++ " is VALIDATED"
+                        else putStrLn $ "Tiang ID: " ++ show (choice) ++ " is NOT VALIDATED"
                     makeLogMessage tiangExisting "VALID"
             emptyPrompt <- prompt "\nPress enter to continue."
             runProgram tiangs messages
@@ -155,10 +187,10 @@ runProgram tiangs messages = do
             sto <- prompt "STO (JGR, MYR, KBR): "
             putStrLn "insert latitude (e.g: -6.175232396788355):"
             lat <- getLine   
-            let double_lat = read(lat)
+            let double_lat = read (lat)
             putStrLn "insert longitude (e.g: 106.82712061061278):"
             lon <- getLine  
-            let double_lon = read(lon)
+            let double_lon = read (lon)
             material <- prompt "material (Steel, Concrete): "
             newTiangs <- addNewTiang tiangs sto double_lat double_lon material
             parseLogTiang newTiangs
@@ -175,27 +207,6 @@ runProgram tiangs messages = do
         _ -> do
             empty <- prompt "Wrong input! Press enter to try again."
             runProgram tiangs messages
-
-showTiangNearby :: [LogTiang] -> String
-showTiangNearby [] = replicate 58 '='
-showTiangNearby (tiang : rest) =
-    "ID: " ++ show (tiangId tiang)
-        ++ "\nArea: "
-        ++ sto tiang
-        ++ "\nLatitude: "
-        ++ show (latitude tiang)
-        ++ "\nLongitude: "
-        ++ show (longitude tiang)
-        ++ "\nmaterial: "
-        ++ material tiang
-        ++ "\nisValid: "
-        ++ show (valid tiang)
-        ++ "\n"
-        ++ replicate 29 '-'
-        ++ "\n"
-        ++ showTiangNearby rest
-
--- Lat Long
 
 main :: IO ()
 main = do

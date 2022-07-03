@@ -40,9 +40,14 @@ executable tiangkita-console
                     , haskell-say ^>=1.0.0.0
                     , gps
                     , bcrypt
+                    , http-conduit
+                    , http-client
+                    , http-client-tls
+                    , rio
     other-modules:  Module.Tiang,
                     Module.Message,
                     Module.User,
+                    Module.Request,
                     Helper
     extensions:       OverloadedStrings
     hs-source-dirs:   app
