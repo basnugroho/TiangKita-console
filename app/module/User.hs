@@ -23,7 +23,6 @@ selectUser users uname pass
     | pass == "" = find (\user -> (username user) == uname && (password user) == pass) users
     | otherwise = find (\user -> (username user) == uname) users
 
-
 parseUser :: String -> [User]
 parseUser rawContent = map parseSingleUser (lines rawContent)
 

@@ -4,6 +4,10 @@ import Control.Monad (ap)
 import Data.Char (isDigit)
 import System.IO (hFlush, stdout)
 import Text.Read
+-- import Control.Monad.Trans
+-- import Control.Monad.Trans.State
+-- import Control.Monad.Trans.Writer
+-- import Data.Monoid
 
 prompt :: String -> IO String
 prompt text = do
@@ -44,3 +48,14 @@ maybeReadInt = do
 
 maybeReadDouble :: String -> Maybe Double
 maybeReadDouble input = readMaybe input :: Maybe Double
+
+isEmail :: String -> Bool
+isEmail [] = False
+isEmail input = '@' `elem` input
+
+-- getEmail :: IOMaybe String
+-- getEmail = do
+--     input <- getLine
+--     if isEmail input
+--         then returnIOM input
+--     else return Nothing

@@ -14,6 +14,7 @@ data LogTiang
         , latitude :: Double
         , longitude :: Double
         , material :: [Char]
+        , radiuscheck :: Double
         , valid :: Bool
         }
     | UnknownTiang
@@ -33,6 +34,7 @@ addNewTiang oldLogTiangList sto latitude longitude material = do
                 , latitude = latitude
                 , longitude = longitude
                 , material = material
+                , radiuscheck = 0
                 , valid = False
                 }
     let newLogTiangList = oldLogTiangList ++ [newLogTiang]
@@ -73,6 +75,7 @@ makeTiang tiangId sto latitude longitude material =
         , latitude = read latitude
         , longitude = read longitude
         , material = unwords material
+        , radiuscheck = 0
         , valid = False
         }
 
@@ -113,7 +116,7 @@ findTiangNearby [] _ _ = []
 findTiangNearby (tiang : rest) inputPoin dist = 
     let tiangPoint = (Point (latitude tiang) (longitude tiang) Nothing Nothing) in
     if (distance (inputPoin) (tiangPoint) < dist)
-        then tiang : findTiangNearby (rest) inputPoin dist 
+        then tiang{radiuscheck = distance (inputPoin) (tiangPoint)} : findTiangNearby (rest) inputPoin dist 
         else findTiangNearby rest inputPoin dist
 
 findTiangEven :: [LogTiang] -> [LogTiang]
@@ -135,6 +138,8 @@ showTiangNearby (tiang : rest) =
         ++ show (longitude tiang)
         ++ "\nmaterial: "
         ++ material tiang
+        ++ "\ncalculated distance: "
+        ++ show (radiuscheck tiang) ++ " meter"
         ++ "\nisValid: "
         ++ show (valid tiang)
         ++ "\n"

@@ -6,6 +6,8 @@
 
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
+import Control.Applicative
+import Control.Monad
 import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT, maybeReadDouble)
 import Module.Tiang (LogTiang, LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
@@ -13,29 +15,21 @@ import Module.Tiang (LogTiang, LogTiang (UnknownTiang), addNewTiang, tiangId, st
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 import Module.User
 import Module.Request (TelkomArea, Place, regional, name, witel, description, formatted_address)
+import Module.Password
 -- import Module.HTTP
 import System.IO (hFlush, stdout)
 import HaskellSay (haskellSay)
-
 import Geo.Computations
-import Data.Time
+import Data.Aeson
+import Data.Fixed
 import Data.List
 import Data.Ord
-import Data.Fixed
-import Control.Applicative
-import Control.Monad
+import Data.Time
+import Network.HTTP.Conduit (simpleHttp)
 import Text.Read
-import Network.HTTP.Conduit (simpleHttp)
 import qualified Data.ByteString.Lazy as B
-
-import Data.Aeson
-import Control.Applicative
-import Control.Monad
-import qualified Data.ByteString.Lazy as B
-import Network.HTTP.Conduit (simpleHttp)
-import GHC.Generics
 import qualified Data.Text.IO as T
-import Crypto.BCrypt
+import GHC.Generics
 
 urlByte :: String -> IO B.ByteString
 urlByte url = simpleHttp url
@@ -227,7 +221,3 @@ main :: IO ()
 main = do
     tiangs <- fmap parseTiang (readFile "log/tiangs.log")
     runProgram tiangs []
-
-
-
-
