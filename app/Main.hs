@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, ViewPatterns, PatternSynonyms #-}
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, EmptyDataDecls, BangPatterns, TupleSections #-}
@@ -8,13 +7,15 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Control.Applicative
 import Control.Monad
+import Control.Monad.Except
 import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT, maybeReadDouble)
 import Module.Tiang (LogTiang, LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
                         material, valid, parseLogTiang, parseTiang, selectTiang, extractTiang, findTiangNearby, showTiangNearby)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 import Module.User
-import Module.Request (TelkomArea, Place, regional, name, witel, description, formatted_address)
+import Module.Request (TelkomArea, Place, parseTelkomArea, regional, name, witel, description, 
+                        formatted_address, showTelkomArea, showPlace, plus_code, request)
 import Module.Password
 -- import Module.HTTP
 import System.IO (hFlush, stdout)
@@ -30,6 +31,16 @@ import Text.Read
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Text.IO as T
 import GHC.Generics
+
+import System.Environment  
+import System.IO  
+import System.IO.Error 
+
+import Network.HTTP.Simple
+import Control.Concurrent     (forkIO, newEmptyMVar, putMVar, takeMVar,
+                               threadDelay)
+import Control.Exception.Safe
+import Data.Typeable          (Typeable, cast)
 
 urlByte :: String -> IO B.ByteString
 urlByte url = simpleHttp url
@@ -68,22 +79,28 @@ runProgram tiangs messages = do
             lat <- getLine   
             putStrLn "insert longitude (e.g: 106.82712061061278):"
             lon <- getLine
-            -- telkom area
-            -- let byteUrl = urlByte $ "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lat=" ++ lat ++ "&lon=" ++ lon
-            -- d <- (eitherDecode <$> byteUrl) :: IO (Either String [TelkomArea])
-            -- case d of
-            --     Left err -> putStrLn err
-            --     Right ps -> print (ps)
-                    -- print $ "You're inside: "
-                    -- ++ ", Regional: " ++ show(regional)
-                    -- ++ ", Witel: " ++ show(witel)
-                    -- ++ ", STO: " ++ show(Module.Request.name)
-                    -- ++ "(" ++ show(description) ++ ")"
+            -- try
+            putStrLn "getting Telkom Area..."
+            eres <- tryAny $ httpLbs "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lat=-6.175232396788355&lon=106.82712061061278"
+            case eres of
+                Left e -> print e
+                Right lbs -> do
+                        -- telkom area
+                        let byteUrl = urlByte $ "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lat=" ++ lat ++ "&lon=" ++ lon
+                        d <- (eitherDecode <$> byteUrl) :: IO (Either String [TelkomArea])
+                        case d of
+                            Left err -> putStrLn err
+                            Right ps -> do
+                                parseTelkomArea ps
+                                putStrLn "Nice! your IP is allowed"
+                                putStrLn $ showTelkomArea (head ps)
+            empty <- prompt "Press enter to get public location info"
             let byteUrl = urlByte $ "https://maps.googleapis.com/maps/api/geocode/json?latlng=" ++ lat ++ ","++ lon ++ "&key=AIzaSyDvqKPOVZlBgYF2t_5odBPOuzzxvBtJL8I"
             d <- (eitherDecode <$> byteUrl) :: IO (Either String Place)
             case d of
                 Left err -> putStrLn err
-                Right ps -> print $ "nearby: " ++ show (ps)
+                Right ps -> do
+                    putStrLn $ "nearby: " ++ showPlace (plus_code ps)
             empty <- prompt "Press enter to go back"
             runProgram tiangs messages
         "c" -> do
