@@ -18,9 +18,9 @@ data User
     | UnknownUser
     deriving (Show, Eq)
 
-selectUser :: [User] -> String -> String -> Maybe User
-selectUser [] _ _ = Nothing
-selectUser users uname pass = find (\user -> (username user) == uname && (password user) == pass) users
+selectUser :: [User] -> String -> Maybe User
+selectUser [] _ = Nothing
+selectUser users uname = find (\user -> (username user) == uname) users
 
 parseUser :: String -> [User]
 parseUser rawContent = map parseSingleUser (lines rawContent)
@@ -29,7 +29,6 @@ parseSingleUser :: String -> User
 parseSingleUser str = case words str of
     (i : un : n : p : s) -> makeUser i un n p s
     _ -> UnknownUser
-
 
 makeUser :: String -> String -> String -> String -> [String] -> User
 makeUser userId username name password state =
@@ -47,6 +46,13 @@ extractUser Nothing = UnknownUser
 
 isLoggedIn :: [User] -> Maybe User
 isLoggedIn users = find (\user -> (state user) == "online") users
+
+isAuthorized :: [User] -> Bool
+isAuthorized users = do
+    let maybeLogged =  find (\user -> (state user) == "online") users
+    case maybeLogged of
+        (Just a) -> True
+        Nothing -> False
 
 changeState :: [User] -> String -> String -> IO [User]
 changeState users uname state = do

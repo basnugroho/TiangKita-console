@@ -17,3 +17,15 @@ TiangID: 90 | Status: VALID | STO: "KLM" | latitude: -8.6894682 | longitude: 115
 TiangID: 98 | Status: VALID | STO: "KLM" | latitude: -8.6894682 | longitude: 115.2098504 | Timestamp: 1657102143
 TiangID: 4 | Status: VALID | STO: "SDN" | latitude: -7.41949837429793 | longitude: 112.66640638796179 | Timestamp: 1657102349
 TiangID: 112 | Status: NEW | STO: "KBR" | latitude: -8.7082376 | longitude: 115.2128145 | Timestamp: 1657102390
+TiangID: 3 | Status: VALID | STO: "SDN" | latitude: -7.419432664002372 | longitude: 112.66614078575975 | Timestamp: 1657124838
+TiangID: 229 | Status: NEW | STO: "KBR" | latitude: -7.5470353 | longitude: 112.4792042 | Timestamp: 1657130654
+TiangID: 230 | Status: NEW | STO: "KBR" | latitude: -6.175232396788355 | longitude: 106.827120610612 | Timestamp: 1657131108
+TiangID: 7 | Status: VALID | STO: "DLA" | latitude: -7.549049403 | longitude: 112.4318896 | Timestamp: 1657131620
+TiangID: 89 | Status: INVALID | STO: "DLA" | latitude: -7.563339312 | longitude: 112.480384 | Timestamp: 1657132329
+TiangID: 67 | Status: INVALID | STO: "DLA" | latitude: -7.548974185 | longitude: 112.479493 | Timestamp: 1657132578
+TiangID: 67 | Status: VALID | STO: "DLA" | latitude: -7.548974185 | longitude: 112.479493 | Timestamp: 1657132614
+TiangID: 231 | Status: NEW | STO: "ABC" | latitude: -6.17523239678835 | longitude: 106.8271206106127 | Timestamp: 1657132954
+TiangID: 232 | Status: NEW | STO: "GBI" | latitude: -6.175232396788355 | longitude: 106.8271206106127 | Timestamp: 1657133059
+TiangID: 233 | Status: NEW | STO: "MYR" | latitude: -7.284954425822813 | longitude: 112.78117465278197 | Timestamp: 1657133357
+TiangID: 67 | Status: INVALID | STO: "DLA" | latitude: -7.548974185 | longitude: 112.479493 | Timestamp: 1657133493
+TiangID: 67 | Status: VALID | STO: "DLA" | latitude: -7.548974185 | longitude: 112.479493 | Timestamp: 1657133510
