@@ -55,8 +55,6 @@ parseLogTiang logTiangList = do
                 ++ show (longitude logTiang)
                 ++ "\t"
                 ++ material logTiang
-                ++ "\t"
-                ++ show (valid logTiang)
                 ++ "\n"
                 ++ convertToLog rest
     let parseLogTiang = init $ convertToLog logTiangList -- using init to remove the last \n at the end of the .log
@@ -103,7 +101,9 @@ updateTiang tiangList choice = do
     let updatedLogTiangList = if (extractTiang tiangExist) == UnknownTiang 
                             then tiangList 
                             else replaceTiang tiangList (extractTiang tiangExist)
+    putStrLn "updated"
     return updatedLogTiangList
+
 
 findTiangNearby :: [LogTiang] -> Point -> Double -> [LogTiang]
 findTiangNearby [] _ _ = []
@@ -112,6 +112,13 @@ findTiangNearby (tiang : rest) inputPoin dist =
     if (distance (inputPoin) (tiangPoint) < dist)
         then tiang{radiuscheck = distance (inputPoin) (tiangPoint)} : findTiangNearby (rest) inputPoin dist 
         else findTiangNearby rest inputPoin dist
+
+findTiangEven :: [LogTiang] -> [LogTiang]
+findTiangEven [] = []
+findTiangEven (tiang : rest)  = 
+    if (mod (tiangId tiang) 2 == 0)
+        then tiang : findTiangEven (rest)
+        else findTiangEven rest
 
 showTiangNearby :: [LogTiang] -> String
 showTiangNearby [] = replicate 58 '='

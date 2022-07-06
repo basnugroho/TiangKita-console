@@ -12,7 +12,7 @@ import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT, maybeReadDouble)
 import Module.Tiang (LogTiang, LogTiang (UnknownTiang), addNewTiang, tiangId, sto, latitude, longitude, 
                         material, valid, parseLogTiang, parseTiang, selectTiang, extractTiang, findTiangNearby, 
-                        showTiangNearby, updateTiang, makeTiang)
+                        showTiangNearby, makeTiang, updateTiang)
 import Module.Message (LogMessage, makeLogMessage, parseLogMessage)
 import Module.User
 import Module.Request (TelkomArea, Place, parseTelkomArea, regional, name, witel, description, 
@@ -52,7 +52,7 @@ runProgram tiangs messages = do
     putStrLn "\n\n\n=============== TiangKita Validator Console ==============="
     putStrLn $ replicate 59 '='
     -- putStrLn $ showItem items
-    putStrLn "(a) Login  (b) Telkom Area (c) Show Tiang Nearby  (d) Validate Tiang Eksisting  (e) Submit New Tiang  (f) Exit"
+    putStrLn "(a) Login  (b) Telkom Area (c) Show Tiang Nearby  (d) Validate Tiang Eksisting  (e) Submit New Tiang  (f) Exit \n(g) Minting Asset into Blockchain"
     choice <- prompt "Input choice: "
     case choice of
         "a" -> do
@@ -204,7 +204,6 @@ runProgram tiangs messages = do
                         putStrLn $ "calculated distance: " ++ show(coordistance) ++ " (in meter)"
                         if coordistance <= 20.0 
                             then do
-                                -- let calonTiang = makeTiang $ show (choice) (sto tiangExisting) lat lon []
                                 updatedTiangs <- updateTiang tiangs choice
                                 parseLogTiang updatedTiangs -- write to file
 
