@@ -1,9 +1,2 @@
-TiangID: 110 | Status: NEW | STO: "JGR" | latitude: 7.41949837429793 | longitude: 112.66640638796179 | Timestamp: 1656347739
-TiangID: 111 | Status: NEW | STO: "MYR" | latitude: 7.41949837429793 | longitude: 112.66640638796179 | Timestamp: 1656347804
-TiangID: 110 | Status: NEW | STO: "JGR" | latitude: -6.17523239678835 | longitude: 106.827120610612 | Timestamp: 1656877762
-TiangID: 110 | Status: NEW | STO: "MYR" | latitude: -6.175232396788355 | longitude: 106.82712061061278 | Timestamp: 1656878029
-TiangID: 111 | Status: NEW | STO: "KBR" | latitude: -6.175232396788355 | longitude: 106.827120610612 | Timestamp: 1656878048
-TiangID: 110 | Status: NEW | STO: "MYR" | latitude: -7.28570501 | longitude: 112.78108914948 | Timestamp: 1656907064
-TiangID: 110 | Status: NEW | STO: "KBR" | latitude: -6.175232396788355 | longitude: 106.8271206106127 | Timestamp: 1656952668
-TiangID: 111 | Status: NEW | STO: "MYR" | latitude: -7.2857424921322 | longitude: 112.7811255 | Timestamp: 1656952713
-TiangID: 112 | Status: NEW | STO: "KBR" | latitude: -6.17523239678835 | longitude: 106.8271206106127 | Timestamp: 1656952809
+TiangID: 1 | Status: VALID | STO: "CJA" | latitude: -6.96219 | longitude: 107.6458142 | Timestamp: 1657097218
+TiangID: 110 | Status: NEW | STO: "JGR" | latitude: -7.327902819968109 | longitude: 112.77771759788764 | Timestamp: 1657097260

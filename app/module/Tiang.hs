@@ -6,6 +6,7 @@ import Data.List
 import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 import System.IO (hFlush, stdout)
 import Geo.Computations
+import Control.Monad (when)
 
 data LogTiang
     = LogTiang
@@ -54,10 +55,13 @@ parseLogTiang logTiangList = do
                 ++ show (longitude logTiang)
                 ++ "\t"
                 ++ material logTiang
+                ++ "\t"
+                ++ show (valid logTiang)
                 ++ "\n"
                 ++ convertToLog rest
     let parseLogTiang = init $ convertToLog logTiangList -- using init to remove the last \n at the end of the .log
-    writeFile "log/tiang.log" parseLogTiang
+    when (length parseLogTiang > 0) $
+        writeFile "log/tiangs.log" parseLogTiang
 
 parseTiang :: String -> [LogTiang]
 parseTiang rawContent = map parseSingleTiang (lines rawContent)
@@ -79,11 +83,6 @@ makeTiang tiangId sto latitude longitude material =
         , valid = False
         }
 
--- validateTiang :: [LogTiang] -> Int -> Double -> Double -> IO [LogTiang]
--- validateTiang oldLogTiangList choice latitude longitude = do
---     let tiangExist = find (\tiang -> (tiangId tiang) == choice) oldLogTiangList
---     return restockedLogTiangList
-
 selectTiang :: [LogTiang] -> Int -> Maybe LogTiang
 selectTiang [] _ = Nothing
 selectTiang tiangList tiangid = find (\tiang -> (tiangId tiang) == tiangid) tiangList
@@ -92,8 +91,8 @@ extractTiang :: Maybe LogTiang -> LogTiang
 extractTiang (Just a) = a
 extractTiang Nothing = UnknownTiang
 
-takeTiang :: [LogTiang] -> Int -> IO [LogTiang]
-takeTiang tiangList choice = do
+updateTiang :: [LogTiang] -> Int -> IO [LogTiang]
+updateTiang tiangList choice = do
     let tiangExist = find (\tiang -> (tiangId tiang) == choice) tiangList
         replaceTiang :: [LogTiang] -> LogTiang -> [LogTiang]
         replaceTiang [] chosenTiang = []
@@ -104,12 +103,7 @@ takeTiang tiangList choice = do
     let updatedLogTiangList = if (extractTiang tiangExist) == UnknownTiang 
                             then tiangList 
                             else replaceTiang tiangList (extractTiang tiangExist)
-
-    if (extractTiang tiangExist) == UnknownTiang
-        then putStrLn "Tiang not found. Please check your TiangID"
-        else putStrLn "TiangID validated successfully!"
     return updatedLogTiangList
-
 
 findTiangNearby :: [LogTiang] -> Point -> Double -> [LogTiang]
 findTiangNearby [] _ _ = []
@@ -118,13 +112,6 @@ findTiangNearby (tiang : rest) inputPoin dist =
     if (distance (inputPoin) (tiangPoint) < dist)
         then tiang{radiuscheck = distance (inputPoin) (tiangPoint)} : findTiangNearby (rest) inputPoin dist 
         else findTiangNearby rest inputPoin dist
-
-findTiangEven :: [LogTiang] -> [LogTiang]
-findTiangEven [] = []
-findTiangEven (tiang : rest)  = 
-    if (mod (tiangId tiang) 2 == 0)
-        then tiang : findTiangEven (rest)
-        else findTiangEven rest
 
 showTiangNearby :: [LogTiang] -> String
 showTiangNearby [] = replicate 58 '='

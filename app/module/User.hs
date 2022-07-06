@@ -5,6 +5,7 @@ import Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
 import Data.List
 -- import Helper (MaybeT, liftMaybeT, maybeReadInt, prompt, runMaybeT)
 import System.IO (hFlush, stdout)
+import Control.Monad (when)
 
 data User
     = User
@@ -19,9 +20,7 @@ data User
 
 selectUser :: [User] -> String -> String -> Maybe User
 selectUser [] _ _ = Nothing
-selectUser users uname pass 
-    | pass == "" = find (\user -> (username user) == uname && (password user) == pass) users
-    | otherwise = find (\user -> (username user) == uname) users
+selectUser users uname pass = find (\user -> (username user) == uname && (password user) == pass) users
 
 parseUser :: String -> [User]
 parseUser rawContent = map parseSingleUser (lines rawContent)
@@ -61,10 +60,6 @@ changeState users uname state = do
     let updatdUsers = if (extractUser userExist) == UnknownUser 
                             then users 
                             else updateState users (extractUser userExist)
-
-    -- if (extractUser userExist) == UnknownUser
-    --     then putStrLn "Tiang not found. Please check your TiangID"
-    --     else putStrLn "TiangID validated successfully!"
     return updatdUsers
 
 changeStateToOffline :: [User] -> IO [User]
@@ -98,4 +93,5 @@ parseLogUser users = do
                 ++ "\n"
                 ++ convertToLog rest
     let parseLogUser = init $ convertToLog users -- using init to remove the last \n at the end of the .log
-    writeFile "log/users_login.log" parseLogUser
+    when (length parseLogUser > 0) $
+        writeFile "log/users.log" parseLogUser
