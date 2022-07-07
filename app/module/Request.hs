@@ -73,9 +73,6 @@ showTelkomArea x = do
                 ++ show (witel x)
                 ++ ", STO: "
                 ++ show (description x)
-                ++ show " ["
-                ++ show (name x)
-                ++ show "]"
                 ++ "\n"
     Prelude.init $ convertToLog x
 

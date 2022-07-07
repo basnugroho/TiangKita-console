@@ -80,7 +80,7 @@ parseTiangValidated logTiangList = do
                 ++ "\t"
                 ++ show (radiuscheck logTiang)
                 ++ "\t"
-                ++ show (isvalid logTiang)
+                ++ show (True)
                 ++ "\t"
                 ++ designator logTiang
                 ++ "\n"
@@ -125,12 +125,18 @@ updateTiang tiangList choice = do
         replaceTiang :: [LogTiang] -> LogTiang -> [LogTiang]
         replaceTiang [] chosenTiang = []
         replaceTiang (tiang : rest) chosenTiang
-            | tiang == chosenTiang = [] --[tiang{valid = True}] ++ replaceTiang rest chosenTiang
+            | tiang == chosenTiang = [tiang{isvalid = True}] ++ replaceTiang rest chosenTiang
             | otherwise = [tiang] ++ replaceTiang rest chosenTiang
     
     let updatedLogTiangList = if (extractTiang tiangExist) == UnknownTiang 
-                            then tiangList 
-                            else replaceTiang tiangList (extractTiang tiangExist)
+            then tiangList 
+            else replaceTiang tiangList (extractTiang tiangExist)
+    
+    if (extractTiang tiangExist) == UnknownTiang
+        then putStrLn "Tiang not found. Please check your TiangID"
+        else
+            putStrLn "Successfully update Tiang"
+            
     return updatedLogTiangList
 
 

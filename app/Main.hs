@@ -76,7 +76,7 @@ runProgram tiangs messages = do
         "b" -> do
             users <- fmap parseUser (readFile "log/users.log")
             if isAuthorized users then do
-                putStrLn "Note: Get Telkom Area Data with internet will cause EXCEPTION"
+                putStrLn "note: Get Telkom Area Data with internet will cause EXCEPTION (don't worry it's handled)\n"
                 
                 -- repetitive: need to refactor
                 lat <- prompt "enter latitude (e.g: -6.175232396788355): "
@@ -98,7 +98,7 @@ runProgram tiangs messages = do
                             return 0.0
                 -- try
                 if safeLat /= 0.0 && safeLon /= 0.0 then do
-                    putStrLn "Getting Telkom Area..."
+                    putStrLn "\nGetting Telkom Area..."
                     eres <- tryAny $ httpLbs "https://api-emas.telkom.co.id:9093/api/area/findByLocation?lat=-6.175232396788355&lon=106.82712061061278"
                     case eres of
                         Left e -> print "Result: Ups! anda tidak menggunakan jaringan intranet Telkom. Akses ditolak"
@@ -110,15 +110,15 @@ runProgram tiangs messages = do
                                     Left err -> putStrLn err
                                     Right ps -> do
                                         parseTelkomArea ps
-                                        putStrLn "Nice! your IP is allowed"
+                                        putStrLn "Nice! your IP is allowed\n"
                                         putStrLn $ showTelkomArea (head ps)
-                    empty <- prompt "\nDon't worry you still can get public place information. Press Enter!"
+                    empty <- prompt "\nPress Enter! For Public Place Info."
                     let byteUrl = urlByte $ "https://maps.googleapis.com/maps/api/geocode/json?latlng=" ++ lat ++ ","++ lon ++ "&key=AIzaSyDvqKPOVZlBgYF2t_5odBPOuzzxvBtJL8I"
                     d <- (eitherDecode <$> byteUrl) :: IO (Either String Place)
                     case d of
                         Left err -> putStrLn err
                         Right ps -> do
-                            putStrLn $ "\n Your coordinaye is near " ++ showPlace (plus_code ps)
+                            putStrLn $ "\nYour coordinate is near " ++ showPlace (plus_code ps)
                     else do putStrLn "Ups! Wrong input detected. Please try again!"
             else do putStrLn "You're not authorized please login first"
             empty <- prompt "\nPress enter to go back"
@@ -220,8 +220,8 @@ runProgram tiangs messages = do
                             putStrLn $ "\nCalculated Distance: " ++ show(coordistance) ++ " (in meter)"
                             if coordistance <= 20.0 
                                 then do
-                                    -- updatedTiangs <- updateTiang tiangs choice
-                                    -- parseLogTiang updatedTiangs
+                                    updatedTiangs <- updateTiang tiangs choice
+                                    parseLogTiang updatedTiangs
 
                                     let updatedTiangMess = extractTiang $ selectTiang tiangs choice
                                     logMessage <- makeLogMessage updatedTiangMess "VALID"
@@ -234,47 +234,51 @@ runProgram tiangs messages = do
                                     putStrLn $ "Tiang ID: " ++ show (choice) ++ " VALIDATION NOT MATCH"
                         else do putStrLn "Ups! Wrong input detected. Please try again!"
             else do putStrLn "You're not authorized please login first"
+            tiangs <- parseTiang <$> (readFile "log/tiangs.log")
             empty <- prompt "\nPress enter to go back"
             runProgram tiangs messages
         "e" -> do
             users <- fmap parseUser (readFile "log/users.log")
+            if isAuthorized users then do
+                putStrLn "\nUser Input"
+                putStrLn $ replicate 58 '='
+                sto <- prompt "Enter STO Code e.g: STO (JGR, MYR, KBR): "
 
-            putStrLn "\nUser Input"
-            putStrLn $ replicate 58 '='
-            sto <- prompt "Enter STO Code e.g: STO (JGR, MYR, KBR): "
+                -- repetitive: need to refactor
+                lat <- prompt "enter latitude (e.g: -6.175232396788355): "
+                safeLat <- do
+                    let safeLat = maybeReadDouble lat
+                    case safeLat of
+                        (Just a) -> return a
+                        (Nothing) -> return 0.0
+                
+                lon <- prompt "enter longitude (e.g: 106.82712061061278): "
+                safeLon <- do
+                    let safeLon = maybeReadDouble lon
+                    case safeLon of
+                        (Just a) -> return a
+                        (Nothing) -> return 0.0
 
-            -- repetitive: need to refactor
-            lat <- prompt "enter latitude (e.g: -6.175232396788355): "
-            safeLat <- do
-                let safeLat = maybeReadDouble lat
-                case safeLat of
-                    (Just a) -> return a
-                    (Nothing) -> return 0.0
-            
-            lon <- prompt "enter longitude (e.g: 106.82712061061278): "
-            safeLon <- do
-                let safeLon = maybeReadDouble lon
-                case safeLon of
-                    (Just a) -> return a
-                    (Nothing) -> return 0.0
+                putStrLn $ show "\nChoose Material Number: "
+                        ++ "\n1. Tiang Steel Panjang 9M"
+                        ++ "\n2. Tiang Steel Panjang 12M"
+                        ++ "\n3. Tiang Concrete Panjang 9M"
+                        ++ "\n4. Tiang Concrete Panjang 12M"
+                        ++ "\n5. Unknown"
 
-            putStrLn $ show "\nChoose Material Number: "
-                    ++ "\n1. Tiang Steel Panjang 9M"
-                    ++ "\n2. Tiang Steel Panjang 12M"
-                    ++ "\n3. Tiang Concrete Panjang 9M"
-                    ++ "\n4. Tiang Concrete Panjang 12M"
-                    ++ "\n5. Unknown"
+                designatorOption <- prompt "\nEnter number: "
 
-            designatorOption <- prompt "\nEnter number: "
-
-            newTiangs <- addNewTiang tiangs sto safeLat safeLon $ generateDesignator (read designatorOption)
-            
-            parseLogTiang newTiangs
-            logMessage <- makeLogMessage (last newTiangs) "NEW"
-            parseLogMessage logMessage
-            putStrLn "\nSuccessfully added New Tiang!"
+                newTiangs <- addNewTiang tiangs sto safeLat safeLon $ generateDesignator (read designatorOption)
+                
+                parseLogTiang newTiangs
+                logMessage <- makeLogMessage (last newTiangs) "NEW"
+                parseLogMessage logMessage
+                putStrLn "\nSuccessfully added New Tiang!"
+            else do putStrLn "You're not authorized please login first"
+            tiangs <- parseTiang <$> (readFile "log/tiangs.log")
             empty <- prompt "\nPress enter to go back"
-            runProgram newTiangs messages
+            tiangs <- parseTiang <$> (readFile "log/tiangs.log")
+            runProgram tiangs messages
         "f" -> do
             putStrLn "Exiting program..."
             users <- fmap parseUser (readFile "log/users.log")
