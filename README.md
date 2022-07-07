@@ -1,6 +1,6 @@
 # TiangKita Console: Nearby Poles Validator (functional version of TiangKita Mobile App)
 
-<center><img src="picture/tiangkita_logo.png" alt="TiangKita Logo" style="width: 80%;"/><center>
+<center><img src="picture/tiangkita_logo.png" alt="TiangKita Logo" style="width: 40%;"/><center>
 
 A nearby poles validator. Created using Haskell, this mini project is targeted to participate TelkomAthon Bacth 3 Stream Blockchain.
 
