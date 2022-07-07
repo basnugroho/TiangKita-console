@@ -1,8 +1,8 @@
 # TiangKita Console: Nearby Poles Validator (functional version of TiangKita Mobile App)
 
-<center><img src="picture/tiangkita_logo.png" alt="TiangKita Logo" style="width: 40%;"/><center>
+<center><img src="picture/tiangkita_logo.png" alt="TiangKita Logo" style="width: 20%;"/><center>
 
-A nearby poles validator. Created using Haskell, this mini project is targeted to participate TelkomAthon Bacth 3 Stream Blockchain.
+A nearby poles validator. Created using Haskell, this mini-project is targeted to participate TelkomAthon Bacth 3 Stream Blockchain.
 
 ## Feature
 1. Authorization. It's required you can use 
@@ -18,7 +18,7 @@ A nearby poles validator. Created using Haskell, this mini project is targeted t
 2. Open terminal, and change directory to this project
 3. Run `$ cabal build`
 4. After it successfully built, run this project with `$ cabal run`
-5. You can use (username: bas, password: mypassword) for login. Or insert your self with Bcrypted password in to users.log file
+5. You can use _(username: bas, password: mypassword)_ for login. Or insert your self with Bcrypted password in to users.log file
 
 ## Technical things:
 1. format input failsafe
