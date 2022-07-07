@@ -1,4 +1,4 @@
-# TiangKita Console: Nearby Poles Validator (functional version in Haskell)
+# TiangKita Console: Nearby Poles Validator (in Haskell)
 
 <center><img src="picture/tiangkita_logo.png" alt="TiangKita Logo" style="width: 20%;"/><center>
 
